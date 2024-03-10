@@ -1,264 +1,239 @@
+import json
 import random
-
 import pygame
-from pygame import MOUSEBUTTONDOWN, mouse
+import math
 
-
-class GameManager:
-    def __init__(self):
-        # Define constants
-        self.SCREEN_WIDTH = 1067
-        self.SCREEN_HEIGHT = 600
-        self.FPS = 60
-        self.MOLE_WIDTH = 90
-        self.MOLE_HEIGHT = 81
-        self.FONT_SIZE = 31
-        self.FONT_TOP_MARGIN = 26
-        self.LEVEL_SCORE_GAP = 4
-        self.LEFT_MOUSE_BUTTON = 1
-        self.GAME_TITLE = "Whack A Mole - Game Programming - Assignment 1"
-        # Initialize player's score, number of missed hits and level
-        self.score = 0
-        self.misses = 0
-        self.level = 1
-        # Initialize screen
-        self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
-        pygame.display.set_caption(self.GAME_TITLE)
-        self.background = pygame.image.load("images/bg.png")
-        # Font object for displaying text
-        self.font_obj = pygame.font.Font("./fonts/GROBOLD.ttf", self.FONT_SIZE)
-        # Initialize the mole's sprite sheet
-        # 6 different states
-        sprite_sheet = pygame.image.load("images/mole.png")
-        self.mole = []
-        self.mole.append(sprite_sheet.subsurface(169, 0, 90, 81))
-        self.mole.append(sprite_sheet.subsurface(309, 0, 90, 81))
-        self.mole.append(sprite_sheet.subsurface(449, 0, 90, 81))
-        self.mole.append(sprite_sheet.subsurface(589, 0, 116, 81))
-        self.mole.append(sprite_sheet.subsurface(731, 0, 116, 81))
-        self.mole.append(sprite_sheet.subsurface(867, 0, 116, 81))
-        # Positions of the holes in background
-        self.hole_positions = []
-        self.hole_positions.append((381, 295))
-        self.hole_positions.append((119, 366))
-        self.hole_positions.append((179, 169))
-        self.hole_positions.append((404, 479))
-        self.hole_positions.append((636, 366))
-        self.hole_positions.append((658, 232))
-        self.hole_positions.append((464, 119))
-        self.hole_positions.append((95, 43))
-        self.hole_positions.append((603, 11))
-        # Init debugger
-        self.debugger = Debugger("debug")
-        # Sound effects
-        self.soundEffect = SoundEffect()
-
-    # Calculate the player level according to his current score & the LEVEL_SCORE_GAP constant
-    def get_player_level(self):
-        newLevel = 1 + int(self.score / self.LEVEL_SCORE_GAP)
-        if newLevel != self.level:
-            # if player get a new level play this sound
-            self.soundEffect.playLevelUp()
-        return 1 + int(self.score / self.LEVEL_SCORE_GAP)
-
-    # Get the new duration between the time the mole pop up and down the holes
-    # It's in inverse ratio to the player's current level
-    def get_interval_by_level(self, initial_interval):
-        new_interval = initial_interval - self.level * 0.15
-        if new_interval > 0:
-            return new_interval
-        else:
-            return 0.05
-
-    # Check whether the mouse click hit the mole or not
-    def is_mole_hit(self, mouse_position, current_hole_position):
-        mouse_x = mouse_position[0]
-        mouse_y = mouse_position[1]
-        current_hole_x = current_hole_position[0]
-        current_hole_y = current_hole_position[1]
-        if (
-            mouse_x > current_hole_x
-            and mouse_x < current_hole_x + self.MOLE_WIDTH
-            and mouse_y > current_hole_y
-            and mouse_y < current_hole_y + self.MOLE_HEIGHT
-        ):
-            return True
-        else:
-            return False
-
-    # Update the game states, re-calculate the player's score, misses, level
-    def update(self):
-        # Update the player's score
-        current_score_string = "SCORE: " + str(self.score)
-        score_text = self.font_obj.render(current_score_string, True, (255, 255, 255))
-        score_text_pos = score_text.get_rect()
-        score_text_pos.centerx = self.background.get_rect().centerx
-        score_text_pos.centery = self.FONT_TOP_MARGIN
-        self.screen.blit(score_text, score_text_pos)
-        # Update the player's misses
-        current_misses_string = "MISSES: " + str(self.misses)
-        misses_text = self.font_obj.render(current_misses_string, True, (255, 255, 255))
-        misses_text_pos = misses_text.get_rect()
-        misses_text_pos.centerx = self.SCREEN_WIDTH / 5 * 4
-        misses_text_pos.centery = self.FONT_TOP_MARGIN
-        self.screen.blit(misses_text, misses_text_pos)
-        # Update the player's level
-        current_level_string = "LEVEL: " + str(self.level)
-        level_text = self.font_obj.render(current_level_string, True, (255, 255, 255))
-        level_text_pos = level_text.get_rect()
-        level_text_pos.centerx = self.SCREEN_WIDTH / 5 * 1
-        level_text_pos.centery = self.FONT_TOP_MARGIN
-        self.screen.blit(level_text, level_text_pos)
-
-    # Start the game's main loop
-    # Contains some logic for handling animations, mole hit events, etc..
-    def start(self):
-        cycle_time = 0
-        num = -1
-        loop = True
-        is_down = False
-        interval = 0.1
-        initial_interval = 1
-        frame_num = 0
-        left = 0
-        # Time control variables
-        clock = pygame.time.Clock()
-
-        for i in range(len(self.mole)):
-            # self.mole[i].set_colorkey((0, 0, 0))
-            self.mole[i] = self.mole[i].convert_alpha()
-
-        while loop:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    loop = False
-                if (
-                    event.type == MOUSEBUTTONDOWN
-                    and event.button == self.LEFT_MOUSE_BUTTON
-                ):
-                    self.soundEffect.playFire()
-                    if (
-                        self.is_mole_hit(
-                            mouse.get_pos(), self.hole_positions[frame_num]
-                        )
-                        and num > 0
-                        and left == 0
-                    ):
-                        num = 3
-                        left = 14
-                        is_down = False
-                        interval = 0
-                        self.score += 1  # Increase player's score
-                        self.level = self.get_player_level()  # Calculate player's level
-                        # Stop popping sound effect
-                        self.soundEffect.stopPop()
-                        # Play hurt sound
-                        self.soundEffect.playHurt()
-                        self.update()
-                    else:
-                        self.misses += 1
-                        self.update()
-
-            if num > 5:
-                self.screen.blit(self.background, (0, 0))
-                self.update()
-                num = -1
-                left = 0
-
-            if num == -1:
-                self.screen.blit(self.background, (0, 0))
-                self.update()
-                num = 0
-                is_down = False
-                interval = 0.5
-                frame_num = random.randint(0, 8)
-
-            mil = clock.tick(self.FPS)
-            sec = mil / 1000.0
-            cycle_time += sec
-            if cycle_time > interval:
-                pic = self.mole[num]
-                self.screen.blit(self.background, (0, 0))
-                self.screen.blit(
-                    pic,
-                    (
-                        self.hole_positions[frame_num][0],
-                        self.hole_positions[frame_num][1],
-                    ),
-                )
-                self.update()
-                if is_down is False:
-                    num += 1
-                else:
-                    num -= 1
-                if num == 4:
-                    interval = 0.3
-                elif num == 3:
-                    num -= 1
-                    is_down = True
-                    self.soundEffect.playPop()
-                    interval = self.get_interval_by_level(
-                        initial_interval
-                    )  # get the newly decreased interval value
-                else:
-                    interval = 0.1
-                cycle_time = 0
-            # Update the display
-            pygame.display.flip()
-
-
-# The Debugger class - use this class for printing out debugging information
-class Debugger:
-    def __init__(self, mode):
-        self.mode = mode
-
-    def log(self, message):
-        if self.mode == "debug":
-            print("> DEBUG: " + str(message))
-
-
-class SoundEffect:
-    def __init__(self):
-        self.mainTrack = pygame.mixer.music.load("sounds/themesong.wav")
-        self.fireSound = pygame.mixer.Sound("sounds/fire.wav")
-        self.fireSound.set_volume(1.0)
-        self.popSound = pygame.mixer.Sound("sounds/pop.wav")
-        self.hurtSound = pygame.mixer.Sound("sounds/hurt.wav")
-        self.levelSound = pygame.mixer.Sound("sounds/point.wav")
-        pygame.mixer.music.play(-1)
-
-    def playFire(self):
-        self.fireSound.play()
-
-    def stopFire(self):
-        self.fireSound.stop()
-
-    def playPop(self):
-        self.popSound.play()
-
-    def stopPop(self):
-        self.popSound.stop()
-
-    def playHurt(self):
-        self.hurtSound.play()
-
-    def stopHurt(self):
-        self.hurtSound.stop()
-
-    def playLevelUp(self):
-        self.levelSound.play()
-
-    def stopLevelUp(self):
-        self.levelSound.stop()
-
-
-###############################################################
-# Initialize the game
+# Initialize Pygame
 pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
 pygame.init()
 
-# Run the main loop
-my_game = GameManager()
-my_game.start()
-# Exit the game if the main loop ends
+# Load the background image
+background = pygame.image.load("images/bg.png")
+screen_width, screen_height = background.get_size()
+
+# Set the dimensions of the window
+screen = pygame.display.set_mode((screen_width, screen_height))
+
+# Load the large image containing the graves
+graveyard_image = pygame.image.load("images/graves.png")
+
+# Read positions from the JSON file
+with open("positions.json", "r") as file:
+    data = json.load(file)
+    extraction_positions = [
+        (item["x"], item["y"]) for item in data["extraction_positions"]
+    ]
+    placement_positions = [
+        (item["x"], item["y"]) for item in data["placement_positions"]
+    ]
+    popup_positions = [(item["x"], item["y"]) for item in data["popup_positions"]]
+    dying_positions = [(item["x"], item["y"]) for item in data["dying_positions"]]
+
+# Extract each grave based on its position and size (74x84)
+grave_size = (74, 84)
+graves = [
+    graveyard_image.subsurface(pygame.Rect(pos, grave_size))
+    for pos in extraction_positions
+]
+
+# Blit the graves onto the background at the placement positions
+for grave, pos in zip(graves, placement_positions):
+    background.blit(grave, pos)
+
+# Load and prepare zombie popping up images
+zombie_popping_image = pygame.image.load("images/zombie.png")
+(
+    zombie_popping_image_width,
+    zombie_popping_image_height,
+) = zombie_popping_image.get_size()
+popup_frames = []
+frame_height = zombie_popping_image_height / 2  # Half the height of the original image
+frame_rate = 30  # Adjust as needed for desired animation speed
+for i in range(frame_rate + 1):
+    frame = zombie_popping_image.subsurface(
+        pygame.Rect(
+            0, i * frame_height / frame_rate, zombie_popping_image_width, frame_height
+        )
+    )
+    popup_frames.append(frame)
+
+# Generate popup rectangles
+popup_rects = []
+for pos in popup_positions:
+    popup_rects.append(pygame.Rect(pos, (zombie_popping_image_width, frame_height)))
+
+# Load and prepare zombie dying images
+zombie_dying_images = []
+for i in range(1, 12):
+    image = pygame.image.load(f"images/die{i}.png")
+    zombie_dying_images.append(image)
+
+# Game variables
+clock = pygame.time.Clock()
+popup_frame_count = len(popup_frames)
+dying_frame_count = len(zombie_dying_images)
+popup_duration = 0.5 * 1000  # miliseconds for popping up
+stayup_duration = 1 * 1000  # miliseconds for staying up
+dying_duration = 0.5 * 1000  # miliseconds for dying
+font_obj = pygame.font.Font("./fonts/GROBOLD.ttf", 31)
+score = 0
+misses = 0
+
+# Sound effects
+mainTrack = pygame.mixer.music.load("sounds/themesong.wav")
+pygame.mixer.music.play()
+hurtSound = pygame.mixer.Sound("sounds/hurt.wav")
+
+# Main game loop
+running = True
+animation_started = False  # Flag to indicate if animation has started
+zombie_not_hit = True  # Flag to indicate if the zombie has not been hit
+zombie_hit = False  # Flag to indicate if the zombie has been hit
+start_time = pygame.time.get_ticks()
+index = random.randint(0, len(placement_positions) - 1)
+popup_position = popup_positions[index]
+dying_position = dying_positions[index]
+popup_rect = popup_rects[index]
+
+while running:
+    # Draw the background
+    screen.blit(background, (0, 0))
+
+    # Update the player's score
+    current_score_string = "SCORE: " + str(score)
+    score_text = font_obj.render(current_score_string, True, (255, 255, 255))
+    score_text_pos = score_text.get_rect()
+    score_text_pos.centerx = screen_width / 3 * 1
+    score_text_pos.centery = 26
+    screen.blit(score_text, score_text_pos)
+    # Update the player's misses
+    current_misses_string = "MISSES: " + str(misses)
+    misses_text = font_obj.render(current_misses_string, True, (255, 255, 255))
+    misses_text_pos = misses_text.get_rect()
+    misses_text_pos.centerx = screen_width / 3 * 2
+    misses_text_pos.centery = 26
+    screen.blit(misses_text, misses_text_pos)
+
+    # Calculate the time elapsed
+    current_time = pygame.time.get_ticks() - start_time
+
+    # Start animation if the zombie has not been hit
+    if zombie_not_hit:
+        # Check for mouse click
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Get the position of the mouse
+                mouse_pos = event.pos
+
+                # Check if mouse collides with the rectangle
+                if popup_rect.collidepoint(mouse_pos):
+                    zombie_hit = True
+                else:
+                    misses += 1
+            elif event.type == pygame.QUIT:
+                running = False
+
+        # Zombie popping up
+        if current_time <= popup_duration:
+            popup_frame_index = math.floor(
+                current_time / popup_duration * popup_frame_count
+            )
+            popup_frame_index = min(popup_frame_index, popup_frame_count - 1)
+            popup_frame = popup_frames[popup_frame_index]
+
+            # Draw
+            screen.blit(popup_frame, popup_position)
+
+            # Check for zombie hit
+            if zombie_hit:
+                zombie_not_hit = False
+                zombie_hit = False
+                score += 1
+                hurtSound.play()
+                start_time = pygame.time.get_ticks()
+
+        # Zombie staying up
+        elif current_time <= popup_duration + stayup_duration:
+            popup_frame = popup_frames[-1]
+            # Draw
+            screen.blit(popup_frame, popup_position)
+
+            # Check for zombie hit
+            if zombie_hit:
+                zombie_not_hit = False
+                zombie_hit = False
+                score += 1
+                hurtSound.play()
+                start_time = pygame.time.get_ticks()
+
+        # Zombie popping down
+        elif current_time <= popup_duration + stayup_duration + popup_duration:
+            popup_frame_index = math.floor(
+                (
+                    (current_time - popup_duration - stayup_duration)
+                    / popup_duration
+                    * popup_frame_count
+                )
+                + 1
+            )
+            popup_frame_index = min(popup_frame_index, popup_frame_count - 1)
+            popup_frame = popup_frames[-popup_frame_index]
+
+            # Draw
+            screen.blit(popup_frame, popup_position)
+
+            # Check for zombie hit
+            if zombie_hit:
+                zombie_hit = False
+
+        # Restart the animation
+        else:
+            popup_frame = popup_frames[0]
+
+            # Draw
+            screen.blit(popup_frame, popup_position)
+
+            # Reset the flags
+            start_time = pygame.time.get_ticks()
+            index = random.randint(0, len(placement_positions) - 1)
+            popup_position = popup_positions[index]
+            dying_position = dying_positions[index]
+            popup_rect = popup_rects[index]
+
+    # Zombie has been hit
+    else:
+        # Zombie dying
+        if current_time <= dying_duration:
+            dying_frame_index = math.floor(
+                current_time / dying_duration * (dying_frame_count + 1)
+            )
+            dying_frame_index = min(dying_frame_index, dying_frame_count - 1)
+            dying_frame = zombie_dying_images[dying_frame_index]
+
+            # Draw
+            screen.blit(dying_frame, dying_position)
+
+            # Check for last frame
+            if dying_frame_index == dying_frame_count - 1:
+                # Reset the flags
+                zombie_not_hit = True
+                start_time = pygame.time.get_ticks()
+                index = random.randint(0, len(placement_positions) - 1)
+                popup_position = popup_positions[index]
+                dying_position = dying_positions[index]
+                popup_rect = popup_rects[index]
+
+        else:
+            # Reset the flags
+            zombie_not_hit = True
+            start_time = pygame.time.get_ticks()
+            index = random.randint(0, len(placement_positions) - 1)
+            popup_position = popup_positions[index]
+            dying_position = dying_positions[index]
+            popup_rect = popup_rects[index]
+
+    # Refresh the screen
+    pygame.display.flip()
+    clock.tick()
+
 pygame.quit()
