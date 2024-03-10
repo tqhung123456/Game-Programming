@@ -5,7 +5,7 @@ import time
 pygame.init()
 
 # Constants
-IMAGE_PATH = "images/graves.png"  # Replace with your image path
+IMAGE_PATH = "images/graves_upscaled.png"  # Replace with your image path
 BACKGROUND_IMAGE_PATH = "images/bg.png"  # Replace with your background image path
 NUM_ROWS = 4
 NUM_COLS = 5

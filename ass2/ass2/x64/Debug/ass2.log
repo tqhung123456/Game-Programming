@@ -1,0 +1,3 @@
+﻿  main.cpp
+C:\QuangHung\LTGame\ass2\ass2\main.cpp(134,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  ass2.vcxproj -> C:\QuangHung\LTGame\ass2\x64\Debug\ass2.exe

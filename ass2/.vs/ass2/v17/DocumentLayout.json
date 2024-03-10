@@ -1,0 +1,53 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\QuangHung\\LTGame\\ass2\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B88BD13F-880F-40C7-B0F7-2C29AA79C959}|ass2\\ass2.vcxproj|C:\\QuangHung\\LTGame\\ass2\\ass2\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B88BD13F-880F-40C7-B0F7-2C29AA79C959}|ass2\\ass2.vcxproj|solutionrelative:ass2\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88BD13F-880F-40C7-B0F7-2C29AA79C959}|ass2\\ass2.vcxproj|C:\\QuangHung\\LTGame\\ass2\\ass2\\test.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B88BD13F-880F-40C7-B0F7-2C29AA79C959}|ass2\\ass2.vcxproj|solutionrelative:ass2\\test.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "test.cpp",
+              "DocumentMoniker": "C:\\QuangHung\\LTGame\\ass2\\ass2\\test.cpp",
+              "RelativeDocumentMoniker": "ass2\\test.cpp",
+              "ToolTip": "C:\\QuangHung\\LTGame\\ass2\\ass2\\test.cpp",
+              "RelativeToolTip": "ass2\\test.cpp",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-03-03T14:40:46.906Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\QuangHung\\LTGame\\ass2\\ass2\\main.cpp",
+              "RelativeDocumentMoniker": "ass2\\main.cpp",
+              "ToolTip": "C:\\QuangHung\\LTGame\\ass2\\ass2\\main.cpp",
+              "RelativeToolTip": "ass2\\main.cpp",
+              "ViewState": "AQIAALgAAAAAAAAAAAAAADgDAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-03-03T10:38:01.295Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
